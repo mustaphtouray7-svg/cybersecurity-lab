@@ -13,7 +13,7 @@ if(!valid){
 }else{
   const browserInfo=()=>{
     const ua=navigator.userAgent||'';
-    const browser=/Edg\\//.test(ua)?'Microsoft Edge':/OPR\\//.test(ua)?'Opera':/Firefox\\//.test(ua)?'Firefox':/Chrome\\//.test(ua)?'Chrome':/Safari\\//.test(ua)&&!/Chrome\\//.test(ua)?'Safari':'Other / unknown';
+    const browser=/Edg\//.test(ua)?'Microsoft Edge':/OPR\//.test(ua)?'Opera':/Firefox\//.test(ua)?'Firefox':/Chrome\//.test(ua)?'Chrome':/Safari\//.test(ua)&&!/Chrome\//.test(ua)?'Safari':'Other / unknown';
     const os=/Android/.test(ua)?'Android':/iPhone|iPad|iPod/.test(ua)?'iOS':/Windows/.test(ua)?'Windows':/Mac OS/.test(ua)?'macOS':/Linux/.test(ua)?'Linux':'Other / unknown';
     const device=/iPad|Tablet/.test(ua)?'Tablet':/Mobi|Android/.test(ua)?'Mobile':'Desktop';
     return {token,browser,os,device,language:navigator.language||'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'',screen:screen.width+' × '+screen.height,viewport:innerWidth+' × '+innerHeight,platform:navigator.platform||''};
