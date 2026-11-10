@@ -1,3 +1,29 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Visitor information | Cybersecurity Lab</title><link rel="stylesheet" href="/visitor.css"></head>
-<body><main class="panel"><p class="eyebrow">CYBERSECURITY LAB / VISITOR NOTICE</p><h1>Visit recorded</h1><p>Your visit has already been recorded, including the time and basic browser/device information. Your IP address is stored only as a protected hash.</p><p class="muted">You may choose to share your email address below. This is optional. We cannot automatically read the Gmail account saved on your device.</p><form id="share-email"><label for="email">Email address (optional)</label><input id="email" type="email" autocomplete="email" placeholder="you@gmail.com"><button class="primary" type="submit">Allow and share my email</button></form><a class="secondary" id="skip" href="#">Continue without sharing</a><p id="status" class="fine" aria-live="polite"></p></main><script type="module" src="/consent.js"></script></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Continue | Cybersecurity Lab</title>
+<link rel="stylesheet" href="/visitor.css">
+</head>
+<body class="visitor-page">
+<main class="visitor-card">
+  <div class="brand-mark" aria-hidden="true">CL</div>
+  <h1>Continue to website</h1>
+  <p class="intro">Your visit has been recorded. You can choose to share your email address, or continue without sharing it.</p>
+  <section id="email-choice" class="choice-panel" hidden>
+    <form id="share-email">
+      <label for="email">Your email address</label>
+      <input id="email" type="email" autocomplete="email" placeholder="name@gmail.com" required>
+      <p class="fine">Your email will be shared with the website administrator. It is optional.</p>
+      <button class="primary full" type="submit">Confirm and continue</button>
+    </form>
+  </section>
+  <button id="share-button" class="primary full" type="button">Share my email address</button>
+  <a class="secondary full" id="skip" href="#">Continue without sharing</a>
+  <p id="status" class="status" aria-live="polite"></p>
+</main>
+<script type="module" src="/consent.js"></script>
+</body>
+</html>
