@@ -1,36 +1,26 @@
 # Visitor analytics setup
 
-The visitor feature is consent-based. A visitor can choose **Continue with Google** or **Continue without sharing**. Google sign-in requests only the OpenID Connect `openid email` scopes. The app records an email only after Google returns a verified email address. The site cannot read an email address stored in a visitor's browser.
+The visitor feature records a visit immediately when a tracking link is opened. It does not use Google OAuth or Google sign-in.
 
-## Required production configuration
+## Production configuration
 
-Create a dedicated PostgreSQL database for this app. Do not reuse a database that contains unrelated personal or business data. The app creates its `tracking_links` and `visitor_events` tables at startup.
+The Render Blueprint connects this service to its dedicated PostgreSQL database and sets `SESSION_SECRET` and `PUBLIC_BASE_URL`. The app creates its `tracking_links` and `visitor_events` tables at startup.
 
-Set these environment variables on the Render web service:
+Set `ADMIN_PASSWORD` as a secret environment variable on the Render web service. The administrator opens `/visitor-admin.html` and signs in with this password. Do not commit the password to GitHub or share it publicly.
 
-- `DATABASE_URL`: connection string for the dedicated PostgreSQL database.
-- `GOOGLE_CLIENT_ID`: OAuth 2.0 client ID from Google Cloud.
-- `GOOGLE_CLIENT_SECRET`: OAuth 2.0 client secret. Keep it in Render environment variables; never commit it.
-- `GOOGLE_REDIRECT_URI`: `https://YOUR-RENDER-HOST/auth/google/callback`.
-- `ADMIN_EMAIL`: exact Google email address allowed to access Visitor Analysis.
-- `SESSION_SECRET`: a long random secret (at least 32 random bytes).
-- `PUBLIC_BASE_URL`: `https://YOUR-RENDER-HOST`, with no trailing slash.
+## How it works
 
-In Google Cloud Console, configure an OAuth consent screen and create a **Web application** OAuth client. Add the exact `GOOGLE_REDIRECT_URI` above under **Authorized redirect URIs**. The app requests only `openid email`. If the OAuth app is in Testing mode, add the intended administrator as a test user. Publish/verify the OAuth app as required before general public use.
-
-## How to use
-
-1. Open `/visitor-admin.html` and sign in with the Google account matching `ADMIN_EMAIL`.
+1. Open `/visitor-admin.html` and sign in.
 2. Enter a destination URL and create a tracking link.
-3. Share that link. Visitors can choose whether to share their Google email.
-4. View recorded visits in Visitor Analysis.
+3. When someone opens the link, the server records the visit immediately.
+4. The visitor can optionally type an email address and choose **Allow and share my email**, or choose **Continue without sharing**.
+5. The visitor is redirected to the destination. The administrator can review visits in Visitor Analysis.
 
-## Privacy and operations
+## Data and privacy
 
-- The email is optional. The visitor can continue without sharing.
-- No browser-saved Gmail address is read or extracted.
-- The server stores the visitor's verified Google email only after the visitor completes Google sign-in.
-- The server stores a one-way HMAC of the IP address for basic duplicate/abuse analysis; it does not store the raw IP address.
-- User-agent strings are stored to show browser/device information.
-- Set and publish an appropriate privacy notice and retention period before collecting real visitor data. Restrict access to the administrator account and protect the Render environment variables.
-- This feature is not fully operational until all environment variables and the dedicated PostgreSQL database are configured.
+- The email field is optional. Visitors who decline are recorded without an email address.
+- No Google sign-in is used. The site cannot read a Gmail address saved on a visitor's phone or browser. If a visitor types an email, it is not independently verified as belonging to them.
+- Visit time and user-agent information are stored.
+- The IP address is transformed into a one-way HMAC hash; the raw IP address is not stored. This supports limited duplicate/abuse analysis but cannot be used to recover the visitor's IP address or precise location.
+- Publish a clear privacy notice and retention period before distributing tracking links publicly. Restrict administrator access and protect Render environment variables.
+- The current Render free PostgreSQL instance expires on 10 December 2026. Upgrade or migrate it before that date to preserve records.
