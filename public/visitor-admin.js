@@ -3,6 +3,12 @@ const rows=document.querySelector('#visitors');
 const loginPanel=document.querySelector('#login-panel');
 const adminContent=document.querySelector('#admin-content');
 function addCell(row,value){const cell=document.createElement('td');cell.textContent=value||'Not available';row.append(cell);}
+function inferDeviceDetails(ua=''){
+ const browser=/Edg\//.test(ua)?'Microsoft Edge':/OPR\//.test(ua)?'Opera':/Firefox\//.test(ua)?'Firefox':/Chrome\//.test(ua)?'Chrome':/Safari\//.test(ua)&&!/Chrome\//.test(ua)?'Safari':'Not available';
+ const os=/Android/.test(ua)?'Android':/iPhone|iPad|iPod/.test(ua)?'iOS':/Windows/.test(ua)?'Windows':/Mac OS/.test(ua)?'macOS':/Linux/.test(ua)?'Linux':'Not available';
+ const device=/iPad|Tablet/.test(ua)?'Tablet':/Mobi|Android/.test(ua)?'Mobile':ua?'Desktop':'Not available';
+ return {browser,os,device};
+}
 async function loadVisitors(){
  try{
   const response=await fetch('/api/admin/visitors');
@@ -17,11 +23,12 @@ async function loadVisitors(){
   if(!list.length){const row=document.createElement('tr');const cell=document.createElement('td');cell.colSpan=9;cell.textContent='No visits recorded yet.';row.append(cell);rows.append(row);return;}
   for(const item of list){
    const row=document.createElement('tr');
+   const inferred=inferDeviceDetails(item.user_agent||'');
    addCell(row,new Date(item.visited_at).toLocaleString());
    addCell(row,item.email_shared?item.email:'Not shared');
-   addCell(row,item.device_type);
-   addCell(row,item.os_info);
-   addCell(row,item.browser_info);
+   addCell(row,item.device_type||inferred.device);
+   addCell(row,item.os_info||inferred.os);
+   addCell(row,item.browser_info||inferred.browser);
    addCell(row,[item.language,item.timezone].filter(Boolean).join(' / '));
    addCell(row,[item.screen_size,item.viewport_size].filter(Boolean).join(' / '));
    addCell(row,item.destination);
