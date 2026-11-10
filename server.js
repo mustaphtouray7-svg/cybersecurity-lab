@@ -156,6 +156,13 @@ export function createAppServer() {
           if (!profileResponse.ok) return sendJson(response, 502, { error: 'Google did not return an email address.' });
           const profile = await profileResponse.json();
           if (!profile.email || !profile.email_verified) return sendJson(response, 403, { error: 'Google did not verify this email address.' });
+          if (pending.admin) {
+            if (profile.email.toLowerCase() !== process.env.ADMIN_EMAIL.toLowerCase()) {
+              return sendJson(response, 403, { error: 'This Google account is not the configured administrator.' });
+            }
+            setCookie(response, cookieName, makeSession(profile.email), 8 * 60 * 60);
+            return redirect(response, '/visitor-admin.html');
+          }
           await recordVisit(request, pending.linkId, profile.email);
           const link = await getLink(pending.linkId);
           return redirect(response, link.destination);
