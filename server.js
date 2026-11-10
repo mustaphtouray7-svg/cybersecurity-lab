@@ -47,6 +47,9 @@ function getSession(req) {
     return data.exp > Date.now() ? data : null;
   } catch { return null; }
 }
+function getCookie(req, name) {
+  return (req.headers.cookie || '').split(';').map(v => v.trim()).find(v => v.startsWith(name + '='))?.slice(name.length + 1) || null;
+}
 function setCookie(res, name, value, maxAge) {
   res.setHeader('Set-Cookie', `${name}=${encodeURIComponent(value)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`);
 }
@@ -117,6 +120,7 @@ export function createAppServer() {
           if (!link) return sendJson(response, 404, { error: 'Tracking link not found.' });
           const state = randomBytes(24).toString('base64url');
           oauthStates.set(state, { linkId, expires: Date.now() + 10 * 60 * 1000 });
+          setCookie(response, 'cyberlab_oauth_state', state, 600);
           const auth = new URL('https://accounts.google.com/o/oauth2/v2/auth');
           auth.search = new URLSearchParams({
             client_id: process.env.GOOGLE_CLIENT_ID,
@@ -134,6 +138,8 @@ export function createAppServer() {
           const state = url.searchParams.get('state');
           const pending = oauthStates.get(state);
           oauthStates.delete(state);
+          setCookie(response, 'cyberlab_oauth_state', '', 0);
+          if (!state || getCookie(request, 'cyberlab_oauth_state') !== state) return sendJson(response, 400, { error: 'Invalid sign-in state. Please try again.' });
           if (!pending || pending.expires < Date.now() || url.searchParams.get('error')) {
             return sendJson(response, 400, { error: 'Google sign-in was cancelled or expired. No email was collected.' });
           }
@@ -185,6 +191,7 @@ export function createAppServer() {
           if (!requireConfig()) return sendJson(response, 503, { error: 'Visitor analytics is not configured yet.' });
           const state = randomBytes(24).toString('base64url');
           oauthStates.set(state, { admin: true, expires: Date.now() + 10 * 60 * 1000 });
+          setCookie(response, 'cyberlab_oauth_state', state, 600);
           const auth = new URL('https://accounts.google.com/o/oauth2/v2/auth');
           auth.search = new URLSearchParams({
             client_id: process.env.GOOGLE_CLIENT_ID,
