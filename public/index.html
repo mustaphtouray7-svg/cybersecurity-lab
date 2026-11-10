@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3f2ec">
+    <meta name="description" content="A practical, local-first cybersecurity training lab.">
+    <title>Cybersecurity Lab | Field Training</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <a class="brand" href="#overview" aria-label="Cybersecurity Lab home">
+          <span class="brand-mark" aria-hidden="true">C<span>/</span></span>
+          <span class="brand-copy"><strong>CYBER</strong><small>FIELD LAB / 01</small></span>
+        </a>
+        <div class="sidebar-label">WORKSPACE</div>
+        <nav class="nav-list">
+          <a class="nav-link is-active" href="#overview" data-view="overview"><span class="nav-symbol">01</span> Overview</a>
+          <a class="nav-link" href="#phishing" data-view="phishing"><span class="nav-symbol">02</span> Message triage</a>
+          <a class="nav-link" href="#passwords" data-view="passwords"><span class="nav-symbol">03</span> Password hygiene</a>
+          <a class="nav-link" href="#incident" data-view="incident"><span class="nav-symbol">04</span> Incident response</a>
+        </nav>
+        <div class="sidebar-bottom">
+          <span class="status-dot"></span>
+          <div><strong>LOCAL TRAINING MODE</strong><small>No external systems contacted</small></div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><span>TRAINING</span><span class="slash">/</span><strong id="current-section">OVERVIEW</strong></div>
+          <div class="topbar-right"><span class="date-stamp">DEFENSIVE PRACTICE</span><span class="avatar" aria-label="Learner">L</span></div>
+        </header>
+
+        <section class="view is-visible" id="overview" aria-labelledby="page-title">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">SECURITY OPERATIONS / TRAINING DECK</p>
+              <h1 id="page-title">Build your<br><span>defensive instincts.</span></h1>
+              <p class="lede">Short, realistic exercises for the moments that matter. Work through each scenario at your own pace.</p>
+            </div>
+            <div class="heading-stamp"><span>LAB SERIES</span><strong>001</strong><small>FOUNDATIONS</small></div>
+          </div>
+
+          <div class="progress-band">
+            <div class="progress-copy"><span class="eyebrow">YOUR TRAINING RECORD</span><strong id="progress-count">0 <small>/ 3 MODULES COMPLETE</small></strong></div>
+            <div class="progress-track" role="progressbar" aria-label="Training modules completed" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0"><span id="progress-bar"></span></div>
+            <span class="progress-percent" id="progress-percent">0%</span>
+          </div>
+
+          <div class="section-title"><div><p class="eyebrow">PICK UP A SCENARIO</p><h2>Training modules</h2></div><span class="module-total">03 MODULES</span></div>
+          <div class="module-grid">
+            <a class="module-card module-phishing" href="#phishing" data-view="phishing">
+              <div class="module-top"><span class="module-index">MODULE 01</span><span class="module-arrow" aria-hidden="true">↗</span></div>
+              <div class="module-icon" aria-hidden="true">✉</div>
+              <h3>Message<br>triage</h3>
+              <p>Inspect a suspicious delivery notice and identify the signals that matter.</p>
+              <div class="module-foot"><span>4 MIN</span><span class="module-state" data-state="phishing">NOT STARTED</span></div>
+            </a>
+            <a class="module-card module-password" href="#passwords" data-view="passwords">
+              <div class="module-top"><span class="module-index">MODULE 02</span><span class="module-arrow" aria-hidden="true">↗</span></div>
+              <div class="module-icon" aria-hidden="true">▤</div>
+              <h3>Password<br>hygiene</h3>
+              <p>Learn what makes credentials resilient with a private, on-device check.</p>
+              <div class="module-foot"><span>3 MIN</span><span class="module-state" data-state="passwords">NOT STARTED</span></div>
+            </a>
+            <a class="module-card module-incident" href="#incident" data-view="incident">
+              <div class="module-top"><span class="module-index">MODULE 03</span><span class="module-arrow" aria-hidden="true">↗</span></div>
+              <div class="module-icon" aria-hidden="true">⌁</div>
+              <h3>Incident<br>response</h3>
+              <p>Make calm, evidence-led decisions in a simulated account compromise.</p>
+              <div class="module-foot"><span>5 MIN</span><span class="module-state" data-state="incident">NOT STARTED</span></div>
+            </a>
+          </div>
+          <footer class="page-footer"><span>CYBERSECURITY LAB <b>·</b> FIELD TRAINING</span><span>SIMULATED SCENARIOS ONLY</span></footer>
+        </section>
+
+        <section class="view lab-view" id="phishing" aria-labelledby="phishing-title" hidden>
+          <div class="lab-heading"><div><p class="eyebrow">MODULE 01 / MESSAGE TRIAGE</p><h1 id="phishing-title">Read between<br>the lines.</h1><p class="lede">A delivery notice has landed in the shared inbox. Inspect the clues, then make your call.</p></div><span class="lab-number">01</span></div>
+          <div class="exercise-layout">
+            <article class="exercise-panel email-panel">
+              <div class="panel-kicker"><span>SIMULATED INBOX / MESSAGE 0042</span><span class="untrusted-label">UNTRUSTED</span></div>
+              <dl class="email-meta"><div><dt>FROM</dt><dd>Parcel Support &lt;updates@parcel-status.example&gt;</dd></div><div><dt>TO</dt><dd>you@company.example</dd></div><div><dt>SUBJECT</dt><dd>Action required: delivery address issue</dd></div></dl>
+              <div class="email-body"><p>Hello,</p><p>We could not deliver your package because the address details are incomplete. Confirm your information within <strong>12 hours</strong> to avoid a return fee.</p><p><a class="fake-link" href="#phishing" aria-label="Simulated link, does not navigate">Review delivery details <span aria-hidden="true">↗</span></a></p><p>Thank you,<br>Parcel Support Team</p></div>
+              <div class="email-note">TRAINING ARTIFACT · The domain and message are fictional. Do not follow links in unexpected messages.</div>
+            </article>
+            <aside class="exercise-panel clue-panel"><div class="panel-kicker">YOUR ASSESSMENT</div><h2>What would you do?</h2><p>Select the safest response to this message.</p><div class="choice-list" role="group" aria-label="Choose your response"><button class="choice-button" data-answer="click">Open the link to check the delivery</button><button class="choice-button" data-answer="report">Avoid the link, verify through the official carrier site, and report it</button><button class="choice-button" data-answer="reply">Reply and ask the sender to confirm the request</button></div><div class="feedback-box" id="phishing-feedback" aria-live="polite" hidden></div></aside>
+          </div>
+          <a class="back-link" href="#overview" data-view="overview">← Back to overview</a>
+        </section>
+
+        <section class="view lab-view" id="passwords" aria-labelledby="password-title" hidden>
+          <div class="lab-heading"><div><p class="eyebrow">MODULE 02 / PASSWORD HYGIENE</p><h1 id="password-title">Make guessing<br>expensive.</h1><p class="lede">Explore how length and uniqueness improve a passphrase. Everything stays on this device.</p></div><span class="lab-number">02</span></div>
+          <div class="exercise-layout password-layout">
+            <article class="exercise-panel password-panel"><div class="panel-kicker"><span>PRIVATE STRENGTH CHECK</span><span class="local-label">ON THIS DEVICE</span></div><label class="field-label" for="password-input">Try a sample passphrase</label><div class="password-entry"><input id="password-input" type="password" autocomplete="off" spellcheck="false" placeholder="Type a sample; never use a real password" aria-describedby="password-privacy"><button id="toggle-password" type="button" aria-label="Show sample passphrase" title="Show or hide sample">SHOW</button></div><p class="privacy-note" id="password-privacy">Do not enter a password you currently use. This check is not sent or saved.</p><div class="strength-readout"><div class="strength-top"><span>ESTIMATED STRENGTH</span><strong id="strength-label">WAITING</strong></div><div class="strength-track" role="meter" aria-label="Estimated password strength" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"><span id="strength-bar"></span></div></div><ul class="guidance-list" id="password-guidance"><li data-rule="length">Use at least 14 characters</li><li data-rule="variety">Mix words or character types</li><li data-rule="unique">Avoid common or reused phrases</li></ul></article>
+            <aside class="exercise-panel principles-panel"><div class="panel-kicker">FIELD PRINCIPLES</div><h2>Long. Unique.<br>Unpredictable.</h2><div class="principle"><span>01</span><div><strong>Favor length</strong><p>A longer passphrase is generally harder to guess than a short, complex one.</p></div></div><div class="principle"><span>02</span><div><strong>Never reuse</strong><p>A password manager can create and remember a distinct password for each account.</p></div></div><div class="principle"><span>03</span><div><strong>Turn on MFA</strong><p>A second factor helps protect an account even if its password is exposed.</p></div></div><div class="completion-wrap"><button id="complete-password" class="primary-button" type="button">Mark module complete <span aria-hidden="true">→</span></button><span class="completion-status" data-state="passwords">NOT COMPLETE</span></div></aside>
+          </div>
+          <a class="back-link" href="#overview" data-view="overview">← Back to overview</a>
+        </section>
+
+        <section class="view lab-view" id="incident" aria-labelledby="incident-title" hidden>
+          <div class="lab-heading"><div><p class="eyebrow">MODULE 03 / INCIDENT RESPONSE</p><h1>Slow down.<br>Contain. Escalate.</h1><p class="lede">A simulated account shows signs of compromise. Choose the most useful next action.</p></div><span class="lab-number">03</span></div>
+          <div class="exercise-layout incident-layout">
+            <article class="exercise-panel incident-brief"><div class="panel-kicker"><span>TABLETOP EXERCISE / CASE 17</span><span class="severity-label">PRIORITY / HIGH</span></div><div class="timeline"><div><time>09:14</time><p>Employee reports an MFA approval they did not initiate.</p></div><div><time>09:18</time><p>Identity alert shows a successful sign-in from an unfamiliar device.</p></div><div><time>09:21</time><p>No confirmed data access yet. The employee is available by phone.</p></div></div><div class="incident-disclaimer">SIMULATED EVENT · Follow your organization's incident response plan in a real event.</div></article>
+            <aside class="exercise-panel incident-decision"><div class="panel-kicker">DECISION POINT 01</div><h2>What is the best first move?</h2><div class="choice-list" role="group" aria-label="Choose the first incident response action"><button class="choice-button" data-incident="wait">Wait for another alert to confirm the pattern</button><button class="choice-button" data-incident="contain">Contact the employee through a trusted channel, revoke active sessions, and alert the response team</button><button class="choice-button" data-incident="delete">Delete the account immediately and investigate later</button></div><div class="feedback-box" id="incident-feedback" aria-live="polite" hidden></div><button id="reset-incident" class="text-button" type="button" hidden>Run scenario again</button></aside>
+          </div>
+          <a class="back-link" href="#overview" data-view="overview">← Back to overview</a>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
