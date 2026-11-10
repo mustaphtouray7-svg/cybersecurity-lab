@@ -60,7 +60,7 @@ async function readBody(req) {
 }
 function requireConfig() {
   return Boolean(pool && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET &&
-    process.env.GOOGLE_REDIRECT_URI && process.env.ADMIN_EMAIL && process.env.SESSION_SECRET);
+    process.env.GOOGLE_REDIRECT_URI && process.env.ADMIN_EMAIL && process.env.SESSION_SECRET && process.env.PUBLIC_BASE_URL);
 }
 async function initDatabase() {
   if (!pool) return;
@@ -125,7 +125,7 @@ export function createAppServer() {
             scope: 'openid email',
             include_granted_scopes: 'true',
             state,
-            prompt: 'select_account',
+            prompt: 'consent select_account',
           }).toString();
           return redirect(response, auth.toString());
         }
