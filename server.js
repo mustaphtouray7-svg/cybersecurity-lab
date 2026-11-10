@@ -29,12 +29,21 @@ async function initDatabase(){
  CREATE TABLE IF NOT EXISTS tracking_links(id TEXT PRIMARY KEY,destination TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
  CREATE TABLE IF NOT EXISTS visitor_events(id BIGSERIAL PRIMARY KEY,link_id TEXT NOT NULL REFERENCES tracking_links(id) ON DELETE CASCADE,visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),email TEXT,email_shared BOOLEAN NOT NULL DEFAULT FALSE,user_agent TEXT,ip_hash TEXT,consent_token TEXT UNIQUE);
  ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS consent_token TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS referrer TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS browser_info TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS os_info TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS device_type TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS language TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS timezone TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS screen_size TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS viewport_size TEXT;
+ ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS platform_info TEXT;
  `);
 }
 function ipHash(req){const ip=String(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0].trim();return createHmac('sha256',process.env.SESSION_SECRET||'temporary').update(ip).digest('hex');}
 async function recordVisit(req,linkId){
  const token=randomBytes(24).toString('base64url');
- await pool.query('INSERT INTO visitor_events(link_id,user_agent,ip_hash,consent_token) VALUES($1,$2,$3,$4)',[linkId,String(req.headers['user-agent']||'').slice(0,500),ipHash(req),token]);
+ await pool.query('INSERT INTO visitor_events(link_id,user_agent,ip_hash,consent_token,referrer) VALUES($1,$2,$3,$4,$5)',[linkId,String(req.headers['user-agent']||'').slice(0,500),ipHash(req),token,String(req.headers.referer||'').slice(0,1000)||null]);
  return token;
 }
 async function visitDestination(token){const r=await pool.query('SELECT l.destination FROM visitor_events e JOIN tracking_links l ON l.id=e.link_id WHERE e.consent_token=$1',[token]);return r.rows[0]?.destination||null;}
@@ -51,6 +60,15 @@ export function createAppServer(){
      if(!pool)return sendJson(res,503,{error:'Visitor database is not configured.'});
      const linkId=path.slice(4);const link=await pool.query('SELECT id FROM tracking_links WHERE id=$1',[linkId]);if(!link.rows[0])return sendJson(res,404,{error:'Tracking link not found.'});
      const token=await recordVisit(req,linkId);return redirect(res,`/consent.html?token=${encodeURIComponent(token)}`);
+    }
+    if(path==='/api/visitor/metadata'&&req.method==='POST'){
+     const body=await readBody(req);const token=String(body.token||'');
+     const clean=(value,max=100)=>typeof value==='string'?value.trim().slice(0,max)||null:null;
+     const result=await pool.query(`UPDATE visitor_events SET browser_info=$1,os_info=$2,device_type=$3,language=$4,timezone=$5,screen_size=$6,viewport_size=$7,platform_info=$8 WHERE consent_token=$9 RETURNING id`,[
+      clean(body.browser),clean(body.os),clean(body.device),clean(body.language),clean(body.timezone),clean(body.screen),clean(body.viewport),clean(body.platform),token
+     ]);
+     if(!result.rows[0])return sendJson(res,404,{error:'Visit not found.'});
+     return sendJson(res,200,{ok:true});
     }
     if(path==='/api/visitor/share'&&req.method==='POST'){
      const body=await readBody(req);const email=String(body.email||'').trim().toLowerCase();const token=String(body.token||'');
@@ -78,7 +96,7 @@ export function createAppServer(){
       return sendJson(res,201,{id,url:`${process.env.PUBLIC_BASE_URL}/go/${id}`});
      }
      if(path==='/api/admin/visitors'&&req.method==='GET'){
-      const result=await pool.query('SELECT e.id,e.visited_at,e.email,e.email_shared,e.user_agent,l.id AS link_id,l.destination FROM visitor_events e JOIN tracking_links l ON l.id=e.link_id ORDER BY e.visited_at DESC LIMIT 500');
+      const result=await pool.query('SELECT e.id,e.visited_at,e.email,e.email_shared,e.user_agent,e.referrer,e.browser_info,e.os_info,e.device_type,e.language,e.timezone,e.screen_size,e.viewport_size,e.platform_info,l.id AS link_id,l.destination FROM visitor_events e JOIN tracking_links l ON l.id=e.link_id ORDER BY e.visited_at DESC LIMIT 500');
       return sendJson(res,200,{visitors:result.rows});
      }
      return sendJson(res,404,{error:'Not found.'});
