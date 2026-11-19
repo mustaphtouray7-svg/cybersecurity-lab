@@ -9,7 +9,11 @@ import pg from 'pg';
 const { Pool } = pg;
 const root = resolve(fileURLToPath(new URL('./public/', import.meta.url)));
 const mimeTypes = { '.css':'text/css; charset=utf-8', '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.json':'application/json; charset=utf-8', '.svg':'image/svg+xml' };
-const pool = process.env.DATABASE_URL ? new Pool({ connectionString:process.env.DATABASE_URL, ssl:process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized:false } }) : null;
+const databaseUrl = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
+const pool = databaseUrl ? new Pool({ connectionString:databaseUrl, ssl:databaseUrl.includes('localhost') ? false : { rejectUnauthorized:false } }) : null;
+const sourcePool = process.env.NEON_DATABASE_URL && process.env.DATABASE_URL
+ ? new Pool({ connectionString:process.env.DATABASE_URL, ssl:process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized:false } })
+ : null;
 const cookieName='cyberlab_admin';
 
 function sendJson(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
@@ -23,9 +27,9 @@ function getSession(req){
 function setCookie(res,name,value,maxAge){res.setHeader('Set-Cookie',`${name}=${encodeURIComponent(value)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`);}
 async function readBody(req){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>10000)throw new Error('Request too large');}return raw?JSON.parse(raw):{};}
 function configured(){return Boolean(pool&&process.env.SESSION_SECRET&&process.env.ADMIN_PASSWORD&&process.env.PUBLIC_BASE_URL);}
-async function initDatabase(){
- if(!pool)return;
- await pool.query(`
+async function initDatabase(db=pool){
+ if(!db)return;
+ await db.query(`
  CREATE TABLE IF NOT EXISTS tracking_links(id TEXT PRIMARY KEY,destination TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
  CREATE TABLE IF NOT EXISTS visitor_events(id BIGSERIAL PRIMARY KEY,link_id TEXT NOT NULL REFERENCES tracking_links(id) ON DELETE CASCADE,visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),email TEXT,email_shared BOOLEAN NOT NULL DEFAULT FALSE,user_agent TEXT,ip_hash TEXT,consent_token TEXT UNIQUE);
  ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS consent_token TEXT;
@@ -39,6 +43,25 @@ async function initDatabase(){
  ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS viewport_size TEXT;
  ALTER TABLE visitor_events ADD COLUMN IF NOT EXISTS platform_info TEXT;
  `);
+}
+async function migrateDatabase(){
+ if(!sourcePool||!process.env.NEON_DATABASE_URL)return;
+ await initDatabase(sourcePool);
+ await initDatabase(pool);
+ const links=(await sourcePool.query('SELECT id,destination,created_at FROM tracking_links ORDER BY created_at,id')).rows;
+ for(const row of links){
+  await pool.query('INSERT INTO tracking_links(id,destination,created_at) VALUES($1,$2,$3) ON CONFLICT(id) DO UPDATE SET destination=EXCLUDED.destination',[row.id,row.destination,row.created_at]);
+ }
+ const events=(await sourcePool.query(`SELECT id,link_id,visited_at,email,email_shared,user_agent,ip_hash,consent_token,referrer,browser_info,os_info,device_type,language,timezone,screen_size,viewport_size,platform_info FROM visitor_events ORDER BY id`)).rows;
+ for(const row of events){
+  await pool.query(`INSERT INTO visitor_events(id,link_id,visited_at,email,email_shared,user_agent,ip_hash,consent_token,referrer,browser_info,os_info,device_type,language,timezone,screen_size,viewport_size,platform_info)
+   VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+   ON CONFLICT(id) DO UPDATE SET link_id=EXCLUDED.link_id,visited_at=EXCLUDED.visited_at,email=EXCLUDED.email,email_shared=EXCLUDED.email_shared,user_agent=EXCLUDED.user_agent,ip_hash=EXCLUDED.ip_hash,consent_token=EXCLUDED.consent_token,referrer=EXCLUDED.referrer,browser_info=EXCLUDED.browser_info,os_info=EXCLUDED.os_info,device_type=EXCLUDED.device_type,language=EXCLUDED.language,timezone=EXCLUDED.timezone,screen_size=EXCLUDED.screen_size,viewport_size=EXCLUDED.viewport_size,platform_info=EXCLUDED.platform_info`,
+   [row.id,row.link_id,row.visited_at,row.email,row.email_shared,row.user_agent,row.ip_hash,row.consent_token,row.referrer,row.browser_info,row.os_info,row.device_type,row.language,row.timezone,row.screen_size,row.viewport_size,row.platform_info]);
+ }
+ await pool.query(`SELECT setval(pg_get_serial_sequence('visitor_events','id'),GREATEST(COALESCE((SELECT MAX(id) FROM visitor_events),1),1),EXISTS(SELECT 1 FROM visitor_events))`);
+ console.log(`Database migration copied ${links.length} tracking links and ${events.length} visitor events.`);
+ await sourcePool.end();
 }
 function ipHash(req){const ip=String(req.headers['x-forwarded-for']||req.socket.remoteAddress||'').split(',')[0].trim();return createHmac('sha256',process.env.SESSION_SECRET||'temporary').update(ip).digest('hex');}
 async function recordVisit(req,linkId){
@@ -113,5 +136,5 @@ export function createAppServer(){
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const port=Number(process.env.PORT)||3000;const server=createAppServer();
- initDatabase().then(()=>server.listen(port,'0.0.0.0',()=>console.log(`Cybersecurity Lab listening on port ${port}`))).catch(error=>{console.error('Database initialization failed:',error.message);process.exit(1);});
+ migrateDatabase().then(()=>initDatabase()).then(()=>server.listen(port,'0.0.0.0',()=>console.log(`Cybersecurity Lab listening on port ${port}`))).catch(error=>{console.error('Database initialization failed:',error.message);process.exit(1);});
 }
